@@ -1,0 +1,15 @@
+/pa-service/target
+/pa-service/.classpath
+/pa-service/.project
+/pa-service/.settings
+/pa-web/.classpath
+/pa-web/.project
+/pa-web/.settings/org.eclipse.core.resources.prefs
+/pa-web/.settings/org.eclipse.jdt.core.prefs
+/pa-web/.settings/org.eclipse.m2e.core.prefs
+/pa-web/*.log
+/pa-web/.project
+/pa-web/pa-web.log
+/pa-web/.settings
+/pa-web/target
+/pa-web/.classpath
