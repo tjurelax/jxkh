@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security" xmlns:beans="http://www.springframework.org/schema/beans"
+  xmlns:context="http://www.springframework.org/schema/context" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+  http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
+                        http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd">
+
+  <global-method-security pre-post-annotations="enabled" />
+
+  <http pattern="/test/**" security="none" />
+  <http pattern="/theme/**" security="none" />
+  <http pattern="/weapon/css/**" security="none" />
+  <http pattern="/weapon/js/**" security="none" />
+  <http pattern="/weapon/login.html" security="none" />
+  <http pattern="/weapon/redirect.html" security="none" />
+  <http pattern="/frame/login" security="none" />
+  <http pattern="/frame/logout" security="none" />
+  <http pattern="/frame/login-page" security="none" />
+
+  <http entry-point-ref="casAuthenticationEntryPoint" use-expressions="true">
+  	<intercept-url pattern="/rest/task/todotask" access="hasRole('task_toDoList')" />
+    <intercept-url pattern="/rest/task/runningQuery" access="hasRole('task_inProcess')" />
+    <intercept-url pattern="/rest/hr/management" access="hasRole('hr_personnelfile')" />
+    <intercept-url pattern="/rest/book/management" access="hasRole('book_management')" />
+    <intercept-url pattern="/rest/book/category/manage" access="hasRole('book_categoryManagement')" />
+    <intercept-url pattern="/rest/leave/queryAll" access="hasRole('leave_queryAll')" />
+    <intercept-url pattern="/rest/leave/queryByOrg" access="hasRole('leave_queryByOrg')" />
+    <intercept-url pattern="/rest/leave/endLeave" access="hasRole('leave_printEndLeave')" />
+    <intercept-url pattern="/rest/report/hr" access="hasRole('leave_hrReport')" />
+    
+    <intercept-url pattern="/rest/report/adm" access="hasRole('leave_admReport')" />
+    <intercept-url pattern="/rest/report/finance" access="hasRole('leave_financeReport')" />
+    <intercept-url pattern="/rest/authority/authoritySetting" access="hasRole('sysmanage_authoritySetting')" />
+    <intercept-url pattern="/rest/holiday/holidaySetting" access="hasRole('sysmanage_holidaySetting')" />
+    <intercept-url pattern="/rest/workflow/process-list" access="hasRole('sysmanage_workflow')" />
+    <intercept-url pattern="/rest/scheduledtask/manage" access="hasRole('sysmanage_timedtask')" />
+    <intercept-url pattern="/rest/report/createReport" access="hasRole('sysmanage_createReport')" />
+    <intercept-url pattern="/rest/rtxNotice/management" access="hasRole('notice_rtxNotice')" />
+    <intercept-url pattern="/**" access="isAuthenticated()" />
+    <custom-filter position="CAS_FILTER" ref="casAuthenticationFilter" />
+    <custom-filter position="BASIC_AUTH_FILTER" ref="basicAuthenticationFilter" />
+    <custom-filter before="LOGOUT_FILTER" ref="logoutFilter" />
+  </http>
+
+  <beans:bean id="serviceProperties" class="org.springframework.security.cas.ServiceProperties">
+    <!-- service : 应用的完整路径 + j_spring_cas_security_check -->
+    <beans:property name="service" value="${app.url:http://127.0.0.1:8080/dm}/j_spring_cas_security_check" />
+    <beans:property name="sendRenew" value="false" />
+  </beans:bean>
+
+  <beans:bean id="casAuthenticationEntryPoint" class="org.springframework.security.cas.web.CasAuthenticationEntryPoint">
+    <!-- loginUrl : cas完整的登录地址 -->
+    <beans:property name="loginUrl" value="${app.casServerUrlPrefix:http://172.16.2.70:8080/cas}/login" />
+    <beans:property name="serviceProperties" ref="serviceProperties" />
+  </beans:bean>
+
+  <beans:bean id="casAuthenticationFilter" class="org.springframework.security.cas.web.CasAuthenticationFilter">
+    <beans:property name="authenticationManager" ref="authenticationManager" />
+  </beans:bean>
+
+  <authentication-manager alias="authenticationManager">
+    <authentication-provider ref="casAuthenticationProvider" />
+  </authentication-manager>
+
+  <beans:bean id="casAuthenticationProvider" class="org.springframework.security.cas.authentication.CasAuthenticationProvider">
+    <!-- 登录验证成功后获得用户权限信息的途径 -->
+    <beans:property name="authenticationUserDetailsService" ref="authenticationUserDetailsService" />
+    <beans:property name="serviceProperties" ref="serviceProperties" />
+    <beans:property name="ticketValidator">
+      <beans:bean class="org.jasig.cas.client.validation.Cas20ServiceTicketValidator">
+        <!-- casServerUrlPrefix : CAS服务URL前缀 -->
+        <beans:constructor-arg value="${app.casServerUrlPrefix:http://172.16.2.70:8080/cas}" />
+      </beans:bean>
+    </beans:property>
+    <!-- key : 用于帮助CasAuthenticationProvider标识出先前认证的令牌 -->
+    <beans:property name="key" value="dm-key" />
+  </beans:bean>
+
+  <beans:bean id="authenticationUserDetailsService" class="org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper">
+    <!-- userDetailsService : Spring内置的或自己通过扩展实现的userDetailsService/userDetailsManager实例的引用 -->
+    <beans:property name="userDetailsService" ref="userDetailsServiceImpl" />
+  </beans:bean>
+
+  <beans:bean id="logoutFilter" class="org.springframework.security.web.authentication.logout.LogoutFilter">
+    <!-- logoutSuccessUrl : 成功退出CAS登录的连接,通过service辅助跳转 -->
+    <beans:constructor-arg
+      value="${app.casServerUrlPrefix:http://172.16.2.70:8080/cas}/logout?service=${app.url:http://127.0.0.1:8080/dm}/weapon/frame.html" />
+    <beans:constructor-arg>
+      <beans:bean class="org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler" />
+    </beans:constructor-arg>
+    <!-- 在本系统中监听的退出登录请求仍然为j_spring_security_logout -->
+  </beans:bean>
+  
+  <!-- BASIC_AUTH 用于外部系统及集成系统的认证 -->
+  <beans:bean id="basicAuthenticationFilter" class="org.springframework.security.web.authentication.www.BasicAuthenticationFilter">
+    <beans:constructor-arg type="org.springframework.security.authentication.AuthenticationManager"
+      ref="integrationAuthenticationManager" />
+  </beans:bean>
+  <beans:bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+    <beans:property name="basename" value="classpath:messages" />
+  </beans:bean>
+</beans:beans>
