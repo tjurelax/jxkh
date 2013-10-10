@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import ru.xpoft.vaadin.DiscoveryNavigator;
 
+import com.ecloud.pa.InitTestData;
 import com.vaadin.annotations.PreserveOnRefresh;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.Title;

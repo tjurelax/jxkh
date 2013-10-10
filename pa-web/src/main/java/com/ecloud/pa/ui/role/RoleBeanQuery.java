@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.ecloud.pa.ui;
+package com.ecloud.pa.ui.role;
 
 import java.util.List;
 import java.util.Map;
