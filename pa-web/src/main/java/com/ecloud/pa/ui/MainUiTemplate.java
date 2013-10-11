@@ -37,7 +37,7 @@ public class MainUiTemplate implements IuiTemplate {
 		page.addComponent(header);
 		page.setExpandRatio(header, 1);
 		page.addComponent(main);
-		page.setExpandRatio(main, 10);
+		page.setExpandRatio(main, 17);
 		Map<String,View> viewMap =SpringApplicationContext.getApplicationContext().getBeansOfType(View.class);
 		page.setSizeFull();
 		header.setSizeFull();

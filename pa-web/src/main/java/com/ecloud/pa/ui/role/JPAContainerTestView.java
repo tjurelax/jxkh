@@ -74,21 +74,29 @@ public class JPAContainerTestView extends VerticalLayout implements ComponentCon
 		mainTable.setSelectable(true);
         mainTable.setImmediate(true);
         mainTable.setRowHeaderMode(RowHeaderMode.INDEX);
+        mainTable.addItemClickListener(new ItemClickListener() {
+			
+        	private static final long serialVersionUID = 1L;
+        	
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				if (event.isDoubleClick() && event.getItem()!=null) {
+					RoleEditor pe = new RoleEditor(event.getItem(),mainContainer);
+					pe.center();
+					UI.getCurrent().addWindow(pe);
+				}
+			}
+		});
         mainTable.addValueChangeListener(new Property.ValueChangeListener() {
-            @Override
+
+        	private static final long serialVersionUID = 1L;
+
+			@Override
             public void valueChange(ValueChangeEvent event) {
             	Object value = event.getProperty().getValue();
-            	if(value != null ){
-            		Role r = mainContainer.getItem(value).getEntity();
-            		setModificationsEnabled( value != null);
-            	}
                 setModificationsEnabled( value != null);
             }
 
-            private void setModificationsEnabled(boolean b) {
-                deleteButton.setEnabled(b);
-                editButton.setEnabled(b);
-            }
         });
         for (Field field:Role.class.getDeclaredFields()){
 			Caption caption = field.getAnnotation(Caption.class);
@@ -102,6 +110,9 @@ public class JPAContainerTestView extends VerticalLayout implements ComponentCon
 		}
 		mainTable.setSizeFull();
         mainTable.addItemClickListener(new ItemClickListener() {
+        	
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             public void itemClick(ItemClickEvent event) {
                 if (event.isDoubleClick()) {
@@ -127,16 +138,22 @@ public class JPAContainerTestView extends VerticalLayout implements ComponentCon
 
 	        deleteButton = new Button("删除");
 	        deleteButton.addClickListener(new Button.ClickListener() {
-	            @Override
+	            
+	        	private static final long serialVersionUID = 1L;
+	        	
+	        	@Override
 	            public void buttonClick(ClickEvent event) {
 	            	ConfirmDialog.show(UI.getCurrent(),"警告","确定要删除吗？删除后将不能恢复！","是","否",
 	           			 new ConfirmDialog.Listener() {
+	            		
+	            		private static final long serialVersionUID = 1L;
+	            		
 						@Override
 						public void onClose(ConfirmDialog dialog) {
 							if(dialog.isConfirmed()){
-								Role role = mainContainer.getItem(mainTable.getValue()).getEntity();
 								mainContainer.removeItem(mainTable.getValue());
 							}
+							setModificationsEnabled(false);
 						}
 					});
 	            }
@@ -146,6 +163,8 @@ public class JPAContainerTestView extends VerticalLayout implements ComponentCon
 	        editButton = new Button("编辑");
 	        editButton.addClickListener(new Button.ClickListener() {
 
+	        	private static final long serialVersionUID = 1L;
+	        	
 	            @Override
 	            public void buttonClick(ClickEvent event) {
 	            	RoleEditor pe = new RoleEditor(mainTable.getItem(mainTable.getValue()),mainContainer);
@@ -187,11 +206,16 @@ public class JPAContainerTestView extends VerticalLayout implements ComponentCon
 	public void enter(ViewChangeEvent event) {
 
 	}
+	
+	 private void setModificationsEnabled(boolean b) {
+         deleteButton.setEnabled(b);
+         editButton.setEnabled(b);
+     }
 	 private void updateFilters() {
 	        mainContainer.setApplyFiltersImmediately(false);
 	        mainContainer.removeAllContainerFilters();
 	        if (textFilter != null && !textFilter.equals("")) {
-	            Like like =new Like("name", textFilter + "%", false);
+	            Like like =new Like("name","%"+ textFilter + "%", false);
 	            mainContainer.addContainerFilter(like);
 	        }
 	        mainContainer.applyFilters();
